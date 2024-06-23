@@ -3,10 +3,28 @@ Phoenix :
   * start server `mix phx.server`
 
 Endpoints :
- * get `/users`: users list
- * get `/users/<id>`: especify user
+ * **GET** `/users`: Retrieve all users
+ * **GET** `/users/<id>`: Retrieve a specific user
    
- * post `/auth/signup`: register <br>
-`{ "user": {"username": "foo", "email": "foo@bar.com", "password": "123456789" } }`
- * post `/auth/signin`: login <br>
-`{ "user": { "username": "foo", "password": "123456789" } }`
+ * **POST** `/auth/signup`: Register a new user <br>
+   Example request body:
+   ```
+   {
+    "user": {
+     "username": "foo",
+     "email": "foo@bar.com",
+     "password": "123456789"
+    }
+   }
+   ```
+   
+ * **POST** `/auth/signin`: User login <br>
+   Example request body:
+   ```
+   {
+    "user": {
+     "username": "foo",
+     "password": "123456789"
+    }
+   }
+   ```
