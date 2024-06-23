@@ -5,8 +5,10 @@ defmodule UserApplicationWeb.Router do
     plug :accepts, ["json"]
   end
 
-  scope "/api", UserApplicationWeb do
+  scope "/", UserApplicationWeb do
     pipe_through :api
+
+    resources "/users", UserController, except: [:new, :edit]
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
