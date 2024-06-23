@@ -5,14 +5,14 @@ defmodule UserApplicationWeb.UserJSON do
   Renders a list of users.
   """
   def index(%{users: users}) do
-    %{data: for(user <- users, do: data(user))}
+    Enum.map(users, &data/1)
   end
 
   @doc """
   Renders a single user.
   """
   def show(%{user: user}) do
-    %{data: data(user)}
+    data(user)
   end
 
   defp data(%User{} = user) do
@@ -20,7 +20,6 @@ defmodule UserApplicationWeb.UserJSON do
       id: user.id,
       username: user.username,
       email: user.email,
-      password: user.password
     }
   end
 end

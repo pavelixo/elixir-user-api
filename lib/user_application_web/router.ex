@@ -8,7 +8,15 @@ defmodule UserApplicationWeb.Router do
   scope "/", UserApplicationWeb do
     pipe_through :api
 
-    resources "/users", UserController, except: [:new, :edit]
+    get "/users", UserController, :index
+    get "/users/:id", UserController, :show
+  end
+
+  scope "/auth", UserApplicationWeb do
+    pipe_through :api
+
+    post "/signup", UserController, :register
+    post "/signin", UserController, :login
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development

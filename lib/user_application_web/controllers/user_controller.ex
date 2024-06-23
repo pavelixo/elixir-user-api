@@ -2,7 +2,7 @@ defmodule UserApplicationWeb.UserController do
   use UserApplicationWeb, :controller
 
   alias UserApplication.Accounts
-  alias UserApplication.Accounts.User
+  alias UserApplicationWeb.ErrorJSON
 
   action_fallback UserApplicationWeb.FallbackController
 
@@ -11,33 +11,59 @@ defmodule UserApplicationWeb.UserController do
     render(conn, :index, users: users)
   end
 
-  def create(conn, %{"user" => user_params}) do
-    with {:ok, %User{} = user} <- Accounts.create_user(user_params) do
-      conn
-      |> put_status(:created)
-      |> put_resp_header("location", ~p"/api/users/#{user}")
-      |> render(:show, user: user)
-    end
-  end
-
   def show(conn, %{"id" => id}) do
-    user = Accounts.get_user!(id)
-    render(conn, :show, user: user)
-  end
-
-  def update(conn, %{"id" => id, "user" => user_params}) do
-    user = Accounts.get_user!(id)
-
-    with {:ok, %User{} = user} <- Accounts.update_user(user, user_params) do
-      render(conn, :show, user: user)
+    try do
+      user = Accounts.get_user!(id)
+      conn
+      |> put_status(:found)
+      |> render(:show, user: user)
+    rescue
+      Ecto.NoResultsError  ->
+        conn
+        |> put_status(:not_found)
+        |> put_view(json: ErrorJSON)
+        |> render(:"404")
     end
   end
 
-  def delete(conn, %{"id" => id}) do
-    user = Accounts.get_user!(id)
+  def register(conn, %{"user" => user_params}) do
+    case Accounts.create_user(user_params) do
+      {:ok, user} ->
+        conn
+        |> put_status(:created)
+        |> render(:show, user: user)
+      {:error, _} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> put_view(json: ErrorJSON)
+        |> render(:"401")
+    end
+  rescue
+    Ecto.ConstraintError ->
+      conn
+      |> put_status(:unprocessable_entity)
+      |> put_view(json: ErrorJSON)
+      |> render(:"401")
+  end
 
-    with {:ok, %User{}} <- Accounts.delete_user(user) do
-      send_resp(conn, :no_content, "")
+  def login(conn, %{"user" => user_params}) do
+    case authenticate_user(user_params["username"], user_params["password"]) do
+      {:ok, user} ->
+        conn
+        |> put_status(:ok)
+        |> render(:show, user: user)
+      {:error, :unauthorized} ->
+        conn
+        |> put_status(:unauthorized)
+        |> put_view(json: ErrorJSON)
+        |> render(:"401")
+    end
+  end
+
+  defp authenticate_user(username, password) do
+    case Accounts.authenticate_user(username, password) do
+      {:ok, user} -> {:ok, user}
+      _ -> {:error, :unauthorized}
     end
   end
 end
